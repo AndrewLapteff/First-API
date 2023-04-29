@@ -17,7 +17,7 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
-    semi: 'false',
+    semi: false,
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-member-accessibility': 'off',
@@ -33,4 +33,4 @@ module.exports = {
       },
     ],
   },
-};
+}
