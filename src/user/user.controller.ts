@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UsePipes, Get, UseGuards } from "@nestjs/common/decorators"
+import { Controller, Post, Body, UsePipes, Get, UseGuards, Put } from "@nestjs/common/decorators"
 import { UserService } from "./user.service"
 import { CreateUserDto } from "./dto/create-user.dto"
 import { UserEntity } from "./user.entity"
@@ -18,13 +18,21 @@ export class UserController {
     return this.userService.buildUserResponse(user)
   }
   @Post('users/login')
-  @UsePipes(new ValidationPipe()) // validation require
+  @UsePipes(new ValidationPipe()) // validation data require
   async login(@Body('user') loginUserDto: LoginUserDto): Promise<IUserResponse> {
     return this.userService.login(loginUserDto)
   }
   @Get('user')
-  @UseGuards(AuthGuard)
-  async currentUser(@User() user: UserEntity): Promise<IUserResponse> {
+  @UseGuards(AuthGuard) // auth require
+  async getCurrentUser(@User() user: UserEntity): Promise<IUserResponse> {
     return this.userService.buildUserResponse(user)
+  }
+  @Put('user')
+  @UseGuards(AuthGuard)
+  async updateCurrentUser(@User() currentUser: UserEntity, @Body('user') newUser: UserEntity): Promise<IUserResponse> {
+    const updatedUser: UserEntity = await this.userService.update(currentUser, newUser)
+    const response: IUserResponse = this.userService.buildUserResponse(updatedUser)
+    delete response.user.password
+    return response
   }
 }

@@ -6,9 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { dataSourceOptions } from '@app/db.connection'
 import { UserModule } from './user/user.module'
 import { AuthMiddleware } from './user/middlewares/auth.middleware'
+import { ArticleModule } from './article/article.module';
 
 @Module({
-  imports: [ TypeOrmModule.forRoot({ ...dataSourceOptions, autoLoadEntities: true }), TagModule, UserModule ],
+  imports: [ TypeOrmModule.forRoot({ ...dataSourceOptions, autoLoadEntities: true }), TagModule, UserModule, ArticleModule ],
   controllers: [ AppController ],
   providers: [ AppService ],
 })
