@@ -2,7 +2,7 @@ import { RequestExtended } from '@app/types/requestExtended.interface'
 import { createParamDecorator, ExecutionContext } from '@nestjs/common'
 export const User = createParamDecorator((param: any, ctx: ExecutionContext) => {
   const request = ctx.switchToHttp().getRequest<RequestExtended>()
-  if (request == null)
+  if (request.user == null)
     return null
 
   if (param)

@@ -1,10 +1,10 @@
-import { DataSource } from "typeorm"
+import { DataSource, EntityManager } from "typeorm"
 import { dataSourceOptions } from "./db.connection"
 
 const AppDataSource = new DataSource({
   ...dataSourceOptions,
-  entities: ['*/**/*.entity{.js,.ts}'],
-  migrations: ['src/migrations/*.ts']
+  entities: [ '*/**/*.entity{.js,.ts}' ],
+  migrations: [ 'src/migrations/*.ts' ]
 })
 
 AppDataSource.initialize()
@@ -14,5 +14,7 @@ AppDataSource.initialize()
   .catch((err) => {
     console.error("Error during Data Source initialization", err)
   })
+
+export const dataSource: EntityManager = AppDataSource.manager
 
 export default AppDataSource
