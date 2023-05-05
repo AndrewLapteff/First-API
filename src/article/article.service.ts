@@ -33,7 +33,7 @@ export class ArticleService {
   }
 
   async delete(slug: string, user: UserEntity): Promise<DeleteResult> {
-    const article = await this.findBySlug(slug)
+    const article: ArticleEntity = await this.findBySlug(slug)
     if (!article) {
       throw new HttpException('Article not found', HttpStatus.NOT_FOUND)
     }
@@ -52,14 +52,14 @@ export class ArticleService {
       queryBuilder.andWhere('articles.tagList LIKE :tag', { tag: `%${query.tag}%` })
     }
     if (query.author) {
-      const user = await this.userRepository.findOne({ where: { username: query.author } })
+      const user: UserEntity = await this.userRepository.findOne({ where: { username: query.author } })
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND)
       }
       queryBuilder.andWhere('articles.authorId = :id', { id: user.id })
     }
     if (query.favorited) {
-      const currentUser = await this.userRepository.findOne({ where: { username: query.favorited }, relations: [ 'favorites' ] })
+      const currentUser: UserEntity = await this.userRepository.findOne({ where: { username: query.favorited }, relations: [ 'favorites' ] })
       let ids: number[] = []
       if (currentUser) {
         ids = currentUser.favorites.map(article => article.id)
@@ -84,8 +84,8 @@ export class ArticleService {
     const articles: ArticleEntity[] = await queryBuilder.getMany()
 
     if (currentUserId) {
-      const currentUser = await this.userRepository.findOne({ where: { id: currentUserId }, relations: [ 'favorites' ] })
-      const favoritedIds = currentUser.favorites.map(article => article.id)
+      const currentUser: UserEntity = await this.userRepository.findOne({ where: { id: currentUserId }, relations: [ 'favorites' ] })
+      const favoritedIds: number[] = currentUser.favorites.map(article => article.id)
       const articlesWithFavoriteFields = articles.map(article => {
         const favorited: boolean = favoritedIds.includes(article.id)
         return { ...article, favorited }
@@ -95,9 +95,9 @@ export class ArticleService {
     return { articles, articlesCount }
   }
 
-  async addFavoriveArticle(currentUserId: number, slug: string) {
-    const article = await this.findBySlug(slug)
-    const user = await this.userRepository.findOne({ where: { id: currentUserId }, relations: [ 'favorites' ] })
+  async addFavoriveArticle(currentUserId: number, slug: string): Promise<{ article: ArticleEntity }> {
+    const article: ArticleEntity = await this.findBySlug(slug)
+    const user: UserEntity = await this.userRepository.findOne({ where: { id: currentUserId }, relations: [ 'favorites' ] })
     const isArticleFavorited: boolean = user.favorites.findIndex(
       articleInFavorites => articleInFavorites.id === article.id) === -1
     if (isArticleFavorited) {
@@ -109,10 +109,10 @@ export class ArticleService {
     return this.buildArticleResponse(article)
   }
 
-  async deleteFavoriveArticle(currentUserId: number, slug: string) {
-    const article = await this.findBySlug(slug)
-    const user = await this.userRepository.findOne({ where: { id: currentUserId }, relations: [ 'favorites' ] })
-    const indexOfArticle = user.favorites.findIndex(favoriteArticle => favoriteArticle.id === article.id)
+  async deleteFavoriveArticle(currentUserId: number, slug: string): Promise<{ article: ArticleEntity }> {
+    const article: ArticleEntity = await this.findBySlug(slug)
+    const user: UserEntity = await this.userRepository.findOne({ where: { id: currentUserId }, relations: [ 'favorites' ] })
+    const indexOfArticle: number = user.favorites.findIndex(favoriteArticle => favoriteArticle.id === article.id)
     if (indexOfArticle >= 0) {
       user.favorites.splice(indexOfArticle, 1)
       article.favoritesCount--
@@ -122,26 +122,28 @@ export class ArticleService {
     return this.buildArticleResponse(article)
   }
 
-  async getFeed(currentUserId: number) {
-    const followings = await this.followRepository.find({ where: { followerId: currentUserId } })
+  async getFeed(currentUserId: number): Promise<{ articles: ArticleEntity[], articlesCount: number }> {
+    const followings: FollowEntity[] = await this.followRepository.find({ where: { followerId: currentUserId } })
     if (followings.length === 0) {
       return { articles: [], articlesCount: 0 }
     }
-    const followingsIds = followings.map(item => item.followingId)
+    const followingsIds: number[] = followings.map(item => item.followingId)
 
     const queryBuilder = this.articleRepository
       .createQueryBuilder('articles')
       .leftJoinAndSelect('articles.author', 'author')
 
     queryBuilder.andWhere('articles.author.id IN (:...ids)', { ids: followingsIds })
-    const articles = await queryBuilder.getMany()
-    const articlesCount = await queryBuilder.getCount()
+    const articles: ArticleEntity[] = await queryBuilder.getMany()
+    const articlesCount: number = await queryBuilder.getCount()
     return { articles: articles, articlesCount: articlesCount }
   }
 
-  buildArticleResponse(article: ArticleEntity) {
+
+  buildArticleResponse(article: ArticleEntity): { article: ArticleEntity } {
     return { article }
   }
+
 
   private getSlug(title: string) {
     return slugify(title, { lower: true }) + '-' + (Math.random() * Math.pow(36, 6) | 0).toString(36)

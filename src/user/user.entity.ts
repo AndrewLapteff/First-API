@@ -1,6 +1,7 @@
 import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { hash } from 'bcrypt'
 import { ArticleEntity } from '../article/article.entity'
+import { CommentEntity } from '../comment/comment.entity'
 
 // Users (for authentication)
 @Entity({ name: 'users' })
@@ -34,4 +35,7 @@ export class UserEntity {
   @ManyToMany(() => ArticleEntity)
   @JoinTable()
   favorites: ArticleEntity[]
+
+  @OneToMany(() => CommentEntity, comment => comment.article)
+  comments: CommentEntity[]
 }

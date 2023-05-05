@@ -11,7 +11,7 @@ export class ProfileService {
     @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(FollowEntity) private readonly followRepository: Repository<FollowEntity>
   ) { }
-  async getProfile(username: string, currentUserId: number) {
+  async getProfile(username: string, currentUserId: number): Promise<ProfileType> {
     const user: UserEntity = await this.userRepository.findOne({ where: { username } })
     if (!user)
       throw new HttpException('User not found', HttpStatus.NOT_FOUND)
@@ -23,13 +23,13 @@ export class ProfileService {
     }
   }
 
-  async follow(username: string, currentUserId: number) {
+  async follow(username: string, currentUserId: number): Promise<ProfileType> {
     const user: UserEntity = await this.userRepository.findOne({ where: { username } })
     if (!user)
       throw new HttpException('User not found', HttpStatus.NOT_FOUND)
     if (user.id === currentUserId)
       throw new HttpException(`You can't follow yourself`, HttpStatus.BAD_REQUEST)
-    const following = await this.followRepository.findOne({
+    const following: FollowEntity = await this.followRepository.findOne({
       where: {
         followerId: currentUserId, followingId: user.id
       }
@@ -44,13 +44,13 @@ export class ProfileService {
     return { ...user, following: true }
   }
 
-  async unfollow(username: string, currentUserId: number) {
+  async unfollow(username: string, currentUserId: number): Promise<ProfileType> {
     const user: UserEntity = await this.userRepository.findOne({ where: { username } })
     if (!user)
       throw new HttpException('User not found', HttpStatus.NOT_FOUND)
     if (user.id === currentUserId)
       throw new HttpException(`You can't follow yourself`, HttpStatus.BAD_REQUEST)
-    const following = await this.followRepository.findOne({
+    const following: FollowEntity = await this.followRepository.findOne({
       where: {
         followerId: currentUserId, followingId: user.id
       }
@@ -62,7 +62,7 @@ export class ProfileService {
     return { ...user, following: false }
   }
 
-  buildProfileResponse(profile: ProfileType) {
+  buildProfileResponse(profile: ProfileType): { profile: ProfileType } {
     return { profile }
   }
 }

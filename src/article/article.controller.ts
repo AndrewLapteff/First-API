@@ -1,5 +1,5 @@
 import { AuthGuard } from "@app/user/guards/auth.guard"
-import { Body, Controller, Delete, Get, Param, Post, UseGuards, Query } from "@nestjs/common"
+import { Body, Controller, Delete, Get, Param, Post, UseGuards, Query, UsePipes, ValidationPipe } from "@nestjs/common"
 import { ArticleService } from "./article.service"
 import { User } from "@app/user/decorators/user.decorator"
 import { CreateArticleDto } from "./dto/createArticle.dto"
@@ -8,6 +8,7 @@ import { ArticleEntity } from "./article.entity"
 import { UserEntity } from "@app/user/user.entity"
 import { DeleteResult } from "typeorm"
 import { ArticlesResponse } from "./types/articlesResponse"
+import { createCommentDto } from "./dto/createComment.dto"
 
 @Controller('articles')
 export class ArticleController {
@@ -47,4 +48,5 @@ export class ArticleController {
   async deleteFavoriveArticle(@User('id') currentUserId: number, @Param('slug') slug: string): Promise<ArticleResponse> {
     return await this.articleService.deleteFavoriveArticle(currentUserId, slug)
   }
+
 }
