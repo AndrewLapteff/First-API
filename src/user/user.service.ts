@@ -60,6 +60,7 @@ export class UserService {
 
   buildUserResponse(user: UserType): IUserResponse {
     const userResponse = { user: { ...user, token: this.createJWTToken(user) } }
+    delete userResponse.user.password
     return userResponse
   }
 

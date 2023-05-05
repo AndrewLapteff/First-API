@@ -6,13 +6,15 @@ import { InjectRepository } from "@nestjs/typeorm"
 import { DeleteResult, Repository } from "typeorm"
 import slugify from "slugify"
 import { ArticlesResponse } from "./types/articlesResponse"
+import { FollowEntity } from "@app/profile/follow.entity"
 
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(ArticleEntity) private readonly articleRepository: Repository<ArticleEntity>,
-    @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>) { }
+    @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>,
+    @InjectRepository(FollowEntity) private readonly followRepository: Repository<FollowEntity>) { }
 
   async create(currentUser: UserEntity, createArticleDto: CreateArticleDto): Promise<ArticleEntity> {
     const article = new ArticleEntity()
@@ -118,6 +120,23 @@ export class ArticleService {
       this.articleRepository.save(article)
     }
     return this.buildArticleResponse(article)
+  }
+
+  async getFeed(currentUserId: number) {
+    const followings = await this.followRepository.find({ where: { followerId: currentUserId } })
+    if (followings.length === 0) {
+      return { articles: [], articlesCount: 0 }
+    }
+    const followingsIds = followings.map(item => item.followingId)
+
+    const queryBuilder = this.articleRepository
+      .createQueryBuilder('articles')
+      .leftJoinAndSelect('articles.author', 'author')
+
+    queryBuilder.andWhere('articles.author.id IN (:...ids)', { ids: followingsIds })
+    const articles = await queryBuilder.getMany()
+    const articlesCount = await queryBuilder.getCount()
+    return { articles: articles, articlesCount: articlesCount }
   }
 
   buildArticleResponse(article: ArticleEntity) {

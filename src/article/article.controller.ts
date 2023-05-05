@@ -18,6 +18,11 @@ export class ArticleController {
     const article = await this.articleService.create(currentUser, createArticleDto)
     return this.articleService.buildArticleResponse(article)
   }
+  @Get('feed')
+  @UseGuards(AuthGuard)
+  async getFeed(@User('id') currentUserId: number) {
+    return await this.articleService.getFeed(currentUserId)
+  }
   @Get(':slug')
   async getArticle(@Param('slug') slug: string): Promise<ArticleResponse> {
     const article: ArticleEntity = await this.articleService.findBySlug(slug)
@@ -28,7 +33,7 @@ export class ArticleController {
   async deleteArticle(@Param('slug') slug: string, @User() user: UserEntity): Promise<DeleteResult> {
     return await this.articleService.delete(slug, user)
   }
-  @Get()
+  @Get('all')
   async findAll(@User('id') currentUserId: number, @Query() query: any): Promise<ArticlesResponse> {
     return this.articleService.findAll(currentUserId, query)
   }
